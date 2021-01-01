@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wathare/provider/chapters.dart';
 import 'package:wathare/provider/recents.dart';
 import 'package:wathare/screens/classes_screen.dart';
 import 'package:wathare/size_config.dart';
@@ -21,9 +20,6 @@ class MyApp extends StatelessWidget {
               providers: [
                 ChangeNotifierProvider.value(
                   value: Recents(),
-                ),
-                ChangeNotifierProvider.value(
-                  value: Chapters(),
                 ),
               ],
               child: MaterialApp(

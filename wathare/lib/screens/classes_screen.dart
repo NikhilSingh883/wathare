@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wathare/bloc/chptersBloc.dart';
 import 'package:wathare/models/chapter.dart';
+import 'package:wathare/models/chapter_response.dart';
 import 'package:wathare/models/recent.dart';
-import 'package:wathare/provider/chapters.dart';
 import 'package:wathare/provider/recents.dart';
 import 'package:wathare/size_config.dart';
 import 'package:wathare/theme.dart';
@@ -19,6 +20,7 @@ class ClassesScreen extends StatefulWidget {
 class _ClassesScreenState extends State<ClassesScreen> {
   int _selectedIndex = 0;
 
+  // ignore: unused_element
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -26,13 +28,20 @@ class _ClassesScreenState extends State<ClassesScreen> {
   }
 
   List<Recent> _recents = [];
-  List<Chapter> _chapters = [];
+
   @override
   void initState() {
     // TODO: implement initState
     _recents = Provider.of<Recents>(context, listen: false).getRecents;
-    _chapters = Provider.of<Chapters>(context, listen: false).getChapters;
+    chaptersBloc..getChapters();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    chaptersBloc..dispose();
+    super.dispose();
   }
 
   @override
@@ -130,13 +139,20 @@ class _ClassesScreenState extends State<ClassesScreen> {
               ),
               Container(
                 height: SizeConfig.heightMultiplier * 27,
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  physics: ClampingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: _chapters.length,
-                  itemBuilder: (context, index) {
-                    return ChapterUploadedTile(_chapters[index]);
+                child: StreamBuilder<ChapterResponse>(
+                  stream: chaptersBloc.subject.stream,
+                  builder: (context, AsyncSnapshot<ChapterResponse> snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.data.error != null &&
+                          snapshot.data.error.length > 0) {
+                        return _buildErrorWidget(snapshot.data.error);
+                      }
+                      return ChapterWidget(snapshot.data);
+                    } else if (snapshot.hasError) {
+                      return _buildErrorWidget(snapshot.error);
+                    } else {
+                      return _buildLoadingWidget();
+                    }
                   },
                 ),
               ),
@@ -214,4 +230,35 @@ class _ClassesScreenState extends State<ClassesScreen> {
       ),
     );
   }
+}
+
+ChapterWidget(ChapterResponse response) {
+  final List<Chapter> _chapters = response.chapters;
+  return ListView.builder(
+    scrollDirection: Axis.vertical,
+    physics: ClampingScrollPhysics(),
+    shrinkWrap: true,
+    itemCount: _chapters.length,
+    itemBuilder: (context, index) {
+      return ChapterUploadedTile(_chapters[index]);
+    },
+  );
+}
+
+Widget _buildLoadingWidget() {
+  return Center(
+      child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [],
+  ));
+}
+
+Widget _buildErrorWidget(String error) {
+  return Center(
+      child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text("Error occured: $error"),
+    ],
+  ));
 }

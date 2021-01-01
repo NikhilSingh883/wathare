@@ -20,4 +20,13 @@ class Chapter {
     this.size = 36.6,
     this.color = AppTheme.chapterD,
   });
+
+  Chapter.fromJson(Map<String, dynamic> json)
+      : standard = json["standard"],
+        chapter = json["chapter"],
+        topic = json["topic"],
+        date = DateTime.now(),
+        this.type = 'PDF',
+        this.size = 36.6,
+        this.color = AppTheme.chapterD;
 }
